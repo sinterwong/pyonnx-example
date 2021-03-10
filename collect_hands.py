@@ -5,16 +5,16 @@ from imutils import paths
 from tqdm import tqdm
 
 
-def get_from_vedio(model_path, vedio_folder, output, input_size=640):
+def get_from_video(model_path, video_folder, output, input_size=640):
     """ 处理带有类别信息的视频 """
     inference = HandDetectionInference(
         model_path, conf_thres=0.45, input_size=input_size)
-    vedio_paths = glob.glob(vedio_folder + "/*/*.mp4")
-    print("视频数量：", len(vedio_paths))
-    print(vedio_paths)
-    for _, i in tqdm(enumerate(vedio_paths), total=len(vedio_paths)):
+    video_paths = glob.glob(video_folder + "/*/*.mp4")
+    print("视频数量：", len(video_paths))
+    print(video_paths)
+    for _, i in tqdm(enumerate(video_paths), total=len(video_paths)):
         save_result = i.split("/")[-2]
-        inference.vedio(i, output, save_result, os.path.basename(i))
+        inference.video(i, output, save_result, os.path.basename(i))
 
 
 def get_from_predict(det_model, cls_model, data_root, output_folder, input_size=[640, 64]):
@@ -27,9 +27,9 @@ def get_from_predict(det_model, cls_model, data_root, output_folder, input_size=
 if __name__ == "__main__":
     # # 通过已知的视频类别获取
     model = "weights/hand-yolov5-640.onnx"
-    vedio_file = "data/video/hand-3"
-    output_folder = "data/video/results/hand-3"
-    get_from_vedio(model, vedio_file, output_folder, 640)
+    video_file = "/home/wangjq/liuzq/data/tmp"
+    output_folder = "/home/wangjq/liuzq/data/tmp/tmp"
+    get_from_video(model, video_file, output_folder, 640)
 
     # 通过手势识别预测刷得数据
     # det_model = "weights/hand-yolov5-320.onnx"

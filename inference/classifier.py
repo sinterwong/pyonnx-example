@@ -1,12 +1,7 @@
-import argparse
-import time
 from pathlib import Path
 import os
 import cv2
 import numpy as np
-from numpy import random
-import onnx
-import onnxruntime
 from .base import ONNXBase
 
 class Classifier(ONNXBase):

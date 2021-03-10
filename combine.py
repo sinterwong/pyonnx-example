@@ -29,13 +29,13 @@ class HandDetectionInference(object):
             result.append(image[dr[1]: dr[3], dr[0]: dr[2], :])
         return result
 
-    def vedio(self, vedio_file, save_folder="output", save_result=None, visual_file="out.avi"):
+    def video(self, video_file, save_folder="output", save_result=None, visual_file="out.avi"):
         if save_folder and not os.path.exists(save_folder):
             os.makedirs(save_folder)
-        cap = cv2.VideoCapture(vedio_file)
+        cap = cv2.VideoCapture(video_file)
         fps = cap.get(cv2.CAP_PROP_FPS)  # 获取fps
         # frame_all = cap.get(cv2.CAP_PROP_FRAME_COUNT)  # 获取视频总帧数
-        # vedio_time = frame_all / fps  # 获取视频总时长
+        # video_time = frame_all / fps  # 获取视频总时长
 
         rval, frame = cap.read()
         h, w, _ = frame.shape
@@ -58,7 +58,7 @@ class HandDetectionInference(object):
                         if not os.path.exists(os.path.join(save_folder, save_result)):
                             os.makedirs(os.path.join(save_folder, save_result))
                         cv2.imwrite(os.path.join(save_folder, save_result, "%d_%03d_%s.jpg" % (
-                            run_count, i, os.path.basename(vedio_file).split(".")[0])), im)
+                            run_count, i, os.path.basename(video_file).split(".")[0])), im)
                 # 获取单帧图片结果
                 if visual_file:
                     visual_result = self.visual(out, frame)
@@ -101,15 +101,15 @@ class KeypointsInference(object):
                 points, 0), return_img=True, show_skeleton_labels=True, thresh=0.35)
         return result
 
-    def vedio(self, vedio_file, save_folder=None, out_file="out.avi", display=False):
+    def video(self, video_file, save_folder=None, out_file="out.avi", display=False):
 
         if save_folder and not os.path.exists(save_folder):
             os.makedirs(save_folder)
 
-        cap = cv2.VideoCapture(vedio_file)
+        cap = cv2.VideoCapture(video_file)
         fps = cap.get(cv2.CAP_PROP_FPS)  # 获取fps
         # frame_all = cap.get(cv2.CAP_PROP_FRAME_COUNT)  # 获取视频总帧数
-        # vedio_time = frame_all / fps  # 获取视频总时长
+        # video_time = frame_all / fps  # 获取视频总时长
 
         rval, frame = cap.read()
         h, w, _ = frame.shape
@@ -197,13 +197,13 @@ class HandOC(object):
                     cv2.imwrite(os.path.join(save_result, self.idx2classes[out[j][-1]], "%d_%03d_%s.jpg" % (
                         out[j][-1], j, os.path.basename(data_paths[i]).split(".")[0])), im[:, :, ::-1])
 
-    def vedio(self, vedio_file, save_folder="output", save_result=None, visual_file="out.avi"):
+    def video(self, video_file, save_folder="output", save_result=None, visual_file="out.avi"):
         if save_folder and not os.path.exists(save_folder):
             os.makedirs(save_folder)
-        cap = cv2.VideoCapture(vedio_file)
+        cap = cv2.VideoCapture(video_file)
         fps = cap.get(cv2.CAP_PROP_FPS)  # 获取fps
         # frame_all = cap.get(cv2.CAP_PROP_FRAME_COUNT)  # 获取视频总帧数
-        # vedio_time = frame_all / fps  # 获取视频总时长
+        # video_time = frame_all / fps  # 获取视频总时长
 
         rval, frame = cap.read()
         h, w, _ = frame.shape
@@ -224,7 +224,7 @@ class HandOC(object):
                         if not os.path.exists(os.path.join(save_folder, save_result)):
                             os.makedirs(os.path.join(save_folder, save_result))
                         cv2.imwrite(os.path.join(save_folder, save_result, "%d_%d_%03d_%s.jpg" % (
-                            out[i][-1], run_count, i, os.path.basename(vedio_file).split(".")[0])), im)
+                            out[i][-1], run_count, i, os.path.basename(video_file).split(".")[0])), im)
                 # 获取单帧图片结果
                 if visual_file:
                     visual_result = self.visual(out, frame)
@@ -246,26 +246,26 @@ if __name__ == '__main__':
     # 人体姿态估计 Demo
     # det_model = "weights/yolov5s.onnx"
     # keypoints_model = "weights/pose_coco/lpn_50_256x192.onnx"
-    # vedio_file = "data/vedio/004.mp4"
-    # output_folder = "data/vedio/results"
+    # video_file = "data/video/004.mp4"
+    # output_folder = "data/video/results"
     # inference = KeypointsInference(det_model, keypoints_model)
-    # inference.vedio(vedio_file, output_folder)
+    # inference.video(video_file, output_folder)
 
     # 手部检测 Demo
     # model = "weights/hand-yolov5-640.onnx"
-    # vedio_file = "data/vedio/004.mp4"
-    # output_folder = "data/vedio/results"
+    # video_file = "data/video/004.mp4"
+    # output_folder = "data/video/results"
     # inference = HandDetectionInference(model, conf_thres=0.25, input_size=640)
-    # inference.vedio(vedio_file, output_folder)
+    # inference.video(video_file, output_folder)
 
     # 手势识别 Demo
     det_model = "weights/hand-yolov5-640.onnx"
     # cls_model="weights/hand-recognition_0.994.onnx"
     cls_model = "weights/hand-recognition_0.992_3.onnx"
     # cls_model="weights/hand-recognition_mobilenetv3_0.98_3.onnx"
-    vedio_file = "data/vedio/005.mp4"
-    output_folder = "data/vedio/results"
+    video_file = "data/video/005.mp4"
+    output_folder = "data/video/results"
     inference = HandOC(det_model, cls_model, 640, 64,
                        conf_thres=0.4, iou_thres=0.45)
-    inference.vedio(vedio_file, save_folder=output_folder,
+    inference.video(video_file, save_folder=output_folder,
                     save_result=None, visual_file="handoc.avi")

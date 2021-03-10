@@ -1,10 +1,7 @@
-import argparse
-import time
 from pathlib import Path
 import os
 import cv2
 import numpy as np
-from numpy import random
 from .base import ONNXBase
 
 
@@ -116,26 +113,3 @@ class Detector(ONNXBase):
                 i = i[:max_det]
             output[xi] = x[i]
         return output
-
-
-if __name__ == "__main__":
-    # weights = "/home/wangjq/wangxt/workspace/lpn-pytorch-master/yolov5/weights/hand-yolov5-320.onnx"
-    weights = "/home/wangjq/wangxt/workspace/lpn-pytorch-master/mnn-example/weights/hand-yolov5-320.onnx"
-    detector = Detector(weights, input_size=320)
-    # im_path = "../data/det/zidane.jpg"
-    im_path = "/home/wangjq/wangxt/workspace/lpn-pytorch-master/mnn-example/images/hand1.jpg"
-    img = cv2.imread(im_path)[:, :, ::-1]
-    out = detector.forward(img)
-    for i, o in enumerate(out):
-        crop_img = img[o[1]: o[3], o[0]: o[2], :]
-        cv2.imwrite("%03d.jpg" % i, crop_img[:, :, ::-1])
-    # 测速
-    # imgs = [img] * 100
-    # e1 = cv2.getTickCount()
-    # for im in imgs:
-    #     out = detector.forward(img)
-    # e2 = cv2.getTickCount()
-    # time = (e2 - e1) / cv2.getTickFrequency()
-    # # 关闭视频文件
-    # print("总耗时：{}s".format(time))
-    # print("单帧耗时：{}s".format(time / 100.))

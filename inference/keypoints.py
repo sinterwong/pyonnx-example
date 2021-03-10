@@ -1,4 +1,3 @@
-import time
 from pathlib import Path
 import os
 import cv2
