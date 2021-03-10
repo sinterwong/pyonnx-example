@@ -1,0 +1,165 @@
+import time
+from pathlib import Path
+import os
+import cv2
+import numpy as np
+import math
+from .base import ONNXBase
+from tools.pose_transforms import xywh2cs, get_affine_transform, transform_preds
+
+
+class Keypoints(ONNXBase):
+    def __init__(self, weights, input_size=(256, 192), conf_thres=0.2):
+        assert os.path.exists(weights), "model file is not found!"
+        self.input_size = input_size
+        self.conf_thres = conf_thres
+        self.session = None
+        self.input_name = None
+        self.output_name = None
+        self._load_model(weights)
+
+    def preprocessing(self, image, center, scale, is_norm=True, sub_mean=None, div_std=None):
+
+        trans = get_affine_transform(center, scale, 0, (self.input_size[1], self.input_size[0]), inv=0)
+        data = cv2.warpAffine(image, trans, (self.input_size[1], self.input_size[0]),flags=cv2.INTER_LINEAR).astype(np.float32)
+
+        # cv2.imwrite("data.jpg", data[:, :, ::-1])
+
+        if is_norm:
+            data /= 255.0
+
+        data = data.transpose([2, 0, 1])
+
+        if sub_mean and div_std:
+            assert isinstance(sub_mean, int) or len(
+                sub_mean) == 3, "vaild args sub_mean"
+            # for i, (m, s) in enumerate(zip(sub_mean, div_std)):
+            #     data[i] -= m
+            #     data[i] /= s
+            data -= np.array(sub_mean).reshape(-1, 1, 1)
+            data /= np.array(div_std).reshape(-1, 1, 1)
+
+        return np.expand_dims(data, 0)
+
+    def _get_max_preds(self, batch_heatmaps):
+        '''
+        get predictions from score maps
+        heatmaps: numpy.ndarray([batch_size, num_joints, height, width])
+        '''
+        assert isinstance(batch_heatmaps, np.ndarray), \
+            'batch_heatmaps should be numpy.ndarray'
+        assert batch_heatmaps.ndim == 4, 'batch_images should be 4-ndim'
+
+        batch_size = batch_heatmaps.shape[0]
+        num_joints = batch_heatmaps.shape[1]
+        width = batch_heatmaps.shape[3]
+        heatmaps_reshaped = batch_heatmaps.reshape(
+            (batch_size, num_joints, -1))
+        idx = np.argmax(heatmaps_reshaped, 2)  # 每个 heatmap 获取最大得分的位置
+        maxvals = np.amax(heatmaps_reshaped, 2)  # 每个 heatmap 最大得分的 val
+
+        maxvals = maxvals.reshape((batch_size, num_joints, 1))
+        idx = idx.reshape((batch_size, num_joints, 1))
+
+        preds = np.tile(idx, (1, 1, 2)).astype(np.float32)
+
+        preds[:, :, 0] = (preds[:, :, 0]) % width  # 获取列的位置
+        preds[:, :, 1] = np.floor((preds[:, :, 1]) / width)  # 获取行的位置
+
+        pred_mask = np.tile(np.greater(maxvals, 0.0), (1, 1, 2))
+        pred_mask = pred_mask.astype(np.float32)
+
+        preds *= pred_mask
+        return preds, maxvals
+
+    def _taylor(self, hm, coord):
+        heatmap_height = hm.shape[0]
+        heatmap_width = hm.shape[1]
+        px = int(coord[0])
+        py = int(coord[1])
+        if 1 < px < heatmap_width-2 and 1 < py < heatmap_height-2:
+            dx = 0.5 * (hm[py][px+1] - hm[py][px-1])
+            dy = 0.5 * (hm[py+1][px] - hm[py-1][px])
+            dxx = 0.25 * (hm[py][px+2] - 2 * hm[py][px] + hm[py][px-2])
+            dxy = 0.25 * (hm[py+1][px+1] - hm[py-1][px+1] - hm[py+1][px-1]
+                          + hm[py-1][px-1])
+            dyy = 0.25 * (hm[py+2*1][px] - 2 * hm[py][px] + hm[py-2*1][px])
+            derivative = np.matrix([[dx], [dy]])
+            hessian = np.matrix([[dxx, dxy], [dxy, dyy]])
+            if dxx * dyy - dxy ** 2 != 0:
+                hessianinv = hessian.I
+                offset = -hessianinv * derivative
+                offset = np.squeeze(np.array(offset.T), axis=0)
+                coord += offset
+        return coord
+
+    def _gaussian_blur(self, hm, kernel):
+        border = (kernel - 1) // 2
+        batch_size = hm.shape[0]
+        num_joints = hm.shape[1]
+        height = hm.shape[2]
+        width = hm.shape[3]
+        for i in range(batch_size):
+            for j in range(num_joints):
+                origin_max = np.max(hm[i, j])
+                dr = np.zeros((height + 2 * border, width + 2 * border))
+                dr[border: -border, border: -border] = hm[i, j].copy()
+                dr = cv2.GaussianBlur(dr, (kernel, kernel), 0)
+                hm[i, j] = dr[border: -border, border: -border].copy()
+            hm[i, j] *= origin_max / np.max(hm[i, j])
+        return hm
+
+    def _get_final_preds_darkpose(self, hm, center, scale):
+        coords, maxvals = self._get_max_preds(hm)
+        heatmap_height = hm.shape[2]
+        heatmap_width = hm.shape[3]
+
+        # post-processing
+        hm = self._gaussian_blur(hm, 11)
+        hm = np.maximum(hm, 1e-10)
+        hm = np.log(hm)
+        for n in range(coords.shape[0]):
+            for p in range(coords.shape[1]):
+                coords[n, p] = self._taylor(hm[n][p], coords[n][p])
+
+        preds = coords.copy()
+
+        # Transform back
+        for i in range(coords.shape[0]):
+            # print (heatmap_height, heatmap_width)
+            preds[i] = transform_preds(
+                coords[i], center[i], scale[i], [heatmap_width, heatmap_height]
+            )
+
+        return preds, maxvals
+
+    def _get_final_preds(self, batch_heatmaps, center, scale):
+        coords, maxvals = self._get_max_preds(batch_heatmaps)
+
+        heatmap_height = batch_heatmaps.shape[2]
+        heatmap_width = batch_heatmaps.shape[3]
+
+        for n in range(coords.shape[0]):
+            for p in range(coords.shape[1]):
+                hm = batch_heatmaps[n][p]
+                px = int(math.floor(coords[n][p][0] + 0.5))
+                py = int(math.floor(coords[n][p][1] + 0.5))
+                if 1 < px < heatmap_width-1 and 1 < py < heatmap_height-1:
+                    diff = np.array(
+                        [
+                            hm[py][px+1] - hm[py][px-1],
+                            hm[py+1][px]-hm[py-1][px]
+                        ]
+                    )
+                    coords[n][p] += np.sign(diff) * .25
+
+        preds = coords.copy()
+
+        # Transform back
+        for i in range(coords.shape[0]):
+            # print (heatmap_height, heatmap_width)
+            preds[i] = transform_preds(
+                coords[i], center[i], scale[i], [heatmap_width, heatmap_height]
+            )
+
+        return preds, maxvals
