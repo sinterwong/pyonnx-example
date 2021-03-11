@@ -113,8 +113,7 @@ class KeypointsInference(object):
 
         rval, frame = cap.read()
         h, w, _ = frame.shape
-        video_writer = cv2.VideoWriter(os.path.join(
-            save_folder, out_file), cv2.VideoWriter_fourcc(*'XVID'), fps, (w, h))
+        video_writer = cv2.VideoWriter(os.path.join(save_folder, out_file), cv2.VideoWriter_fourcc(*'XVID'), fps, (w, h))
         # video_writer = cv2.VideoWriter(os.path.join(save_folder, out_file), cv2.VideoWriter_fourcc(*'AVC1'), fps,(w, h))
         run_count = 0
         e1 = cv2.getTickCount()

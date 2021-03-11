@@ -87,14 +87,6 @@ def visualize(img, det_boxes=None, gt_boxes=None, keypoints=None, is_show_label=
     if return_img:
         return im.copy()
 
-    # cv2.imshow(name, im)
-    # cv2.waitKey(0)
-    # while True:
-    #     c = cv2.waitKey(0)
-    #     if c == ord('d'):
-    #         return
-    #     elif c == ord('n'):
-    #         break
 
 def draw_skeleton(aa, kp, show_skeleton_labels=False):
     skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12], [7, 13], [6, 7], [6, 8], [7, 9], [8, 10], [9, 11], [2, 3], [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]

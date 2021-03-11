@@ -27,20 +27,20 @@ class KeypointsLPN(Keypoints):
 
         data = self.preprocessing(image, c, s, sub_mean=[0.485, 0.456, 0.406], div_std=[0.229, 0.224, 0.225])
 
-        forward_start = cv2.getTickCount()
+        # forward_start = cv2.getTickCount()
         input_feed = self._get_input_feed(self.input_name, data)
         outputs = self.session.run(self.output_name, input_feed=input_feed)[0]
-        forward_end = cv2.getTickCount()
-        print("推理耗时：{}s".format(
-            (forward_end - forward_start) / cv2.getTickFrequency()))
+        # forward_end = cv2.getTickCount()
+        # print("推理耗时：{}s".format(
+        #     (forward_end - forward_start) / cv2.getTickFrequency()))
 
-        post_start = cv2.getTickCount()
+        # post_start = cv2.getTickCount()
         preds, maxvals = self._get_final_preds(outputs, [c], [s])
         # preds, maxvals = self._get_final_preds_darkpose(outputs, [c], [s])
         # preds[:, maxvals.squeeze() < self.conf_thres] = -1
         preds = np.concatenate([preds, maxvals], axis=2).squeeze()
-        post_end = cv2.getTickCount()
-        print("后处理耗时：{}s".format((post_end - post_start) / cv2.getTickFrequency()))
+        # post_end = cv2.getTickCount()
+        # print("后处理耗时：{}s".format((post_end - post_start) / cv2.getTickFrequency()))
 
         return preds
 
