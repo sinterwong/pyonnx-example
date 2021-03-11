@@ -75,66 +75,6 @@ class HandDetectionInference(object):
         print("单帧耗时：{}s".format(time / float(run_count)))
 
 
-class KeypointsInference(object):
-    def __init__(self, det_model_file, pose_model_file):
-        self._detector = DetectorYolov5(
-            det_model_file, conf_thres=0.5, iou_thres=0.4)
-        self._pose_detector = KeypointsLPN(
-            pose_model_file, conf_thres=0.35)
-
-    def single_image(self, frame):
-        result = frame.copy()
-        out = self._detector.forward(frame)
-        if out.shape[0] < 1:
-            return result
-        for _, dr in enumerate(out):
-            if int(dr[-1]) != 0:
-                continue
-            person_image = frame[dr[1]: dr[3], dr[0]: dr[2], :]
-            if person_image.shape[0] < 10 or person_image.shape[1] < 10:
-                continue
-            points = self._pose_detector.forward(person_image)
-            # points 坐标回归至原图坐标
-            points[:, 0] += dr[0]
-            points[:, 1] += dr[1]
-            result = visualize(result, keypoints=np.expand_dims(
-                points, 0), return_img=True, show_skeleton_labels=True, thresh=0.35)
-        return result
-
-    def video(self, video_file, save_folder=None, out_file="out.avi", display=False):
-
-        if save_folder and not os.path.exists(save_folder):
-            os.makedirs(save_folder)
-
-        cap = cv2.VideoCapture(video_file)
-        fps = cap.get(cv2.CAP_PROP_FPS)  # 获取fps
-        # frame_all = cap.get(cv2.CAP_PROP_FRAME_COUNT)  # 获取视频总帧数
-        # video_time = frame_all / fps  # 获取视频总时长
-
-        rval, frame = cap.read()
-        h, w, _ = frame.shape
-        video_writer = cv2.VideoWriter(os.path.join(save_folder, out_file), cv2.VideoWriter_fourcc(*'XVID'), fps, (w, h))
-        # video_writer = cv2.VideoWriter(os.path.join(save_folder, out_file), cv2.VideoWriter_fourcc(*'AVC1'), fps,(w, h))
-        run_count = 0
-        e1 = cv2.getTickCount()
-        while rval:
-            rval, frame = cap.read()
-            if frame is not None:
-                # 获取单帧图片结果
-                out = self.single_image(frame)
-                video_writer.write(out)
-                # cv2.imwrite("out.jpg", out)
-                run_count += 1
-
-        e2 = cv2.getTickCount()
-        time = (e2 - e1) / cv2.getTickFrequency()
-        # 关闭视频文件
-        cap.release()
-        video_writer.release()
-        print("总耗时：{}s".format(time))
-        print("单帧耗时：{}s".format(time / float(run_count)))
-
-
 class HandOC(object):
     def __init__(self, det_model, cls_model, det_input_size=320, cls_input_size=64, conf_thres=0.5, iou_thres=0.45):
         self._detector = DetectorYolov5(
@@ -240,31 +180,3 @@ class HandOC(object):
         print("总耗时：{}s".format(time))
         print("单帧耗时：{}s".format(time / float(run_count)))
 
-
-if __name__ == '__main__':
-    # 人体姿态估计 Demo
-    # det_model = "weights/yolov5s.onnx"
-    # keypoints_model = "weights/pose_coco/lpn_50_256x192.onnx"
-    # video_file = "data/video/004.mp4"
-    # output_folder = "data/video/results"
-    # inference = KeypointsInference(det_model, keypoints_model)
-    # inference.video(video_file, output_folder)
-
-    # 手部检测 Demo
-    # model = "weights/hand-yolov5-640.onnx"
-    # video_file = "data/video/004.mp4"
-    # output_folder = "data/video/results"
-    # inference = HandDetectionInference(model, conf_thres=0.25, input_size=640)
-    # inference.video(video_file, output_folder)
-
-    # 手势识别 Demo
-    det_model = "weights/hand-yolov5-640.onnx"
-    # cls_model="weights/hand-recognition_0.994.onnx"
-    cls_model = "weights/hand-recognition_0.992_3.onnx"
-    # cls_model="weights/hand-recognition_mobilenetv3_0.98_3.onnx"
-    video_file = "data/video/005.mp4"
-    output_folder = "data/video/results"
-    inference = HandOC(det_model, cls_model, 640, 64,
-                       conf_thres=0.4, iou_thres=0.45)
-    inference.video(video_file, save_folder=output_folder,
-                    save_result=None, visual_file="handoc.avi")

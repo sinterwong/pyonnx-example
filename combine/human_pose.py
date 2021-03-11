@@ -67,17 +67,9 @@ class HumanPose(CombineBase):
                     cv2.putText(aa, kp_names[j], tuple(kp[j][:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0))
 
     def visualize_pose17(self, img, keypoints, show_skeleton_labels=False, thresh=0.2):
-
-        color_map = [(0, 0, 0), (0, 255, 0), (255, 128, 0), (255, 255, 0), (255, 0, 255), (255, 128, 255), (128, 255, 128), (128, 255, 255), (255, 255, 128), (0, 128, 255), (0, 255, 128),
-                (255, 0, 128), (0, 215, 255), (255, 0, 255), (255, 128, 0), (128, 128, 255), (0, 255, 255), (0, 69, 255), (0, 69, 255), (255, 204, 204), (204, 255, 255)]
-
         im = np.array(img).astype(np.uint8)
-        colors = dict()
-        font = cv2.FONT_HERSHEY_SIMPLEX
-
         for i in range(len(keypoints)):
             self._draw_skeleton_17(im, keypoints[i], show_skeleton_labels)
-
         return im
 
     def visualize_pose133(self, img, keypoints, thresh=0.2):
@@ -113,8 +105,7 @@ class HumanPose(CombineBase):
                 16
             ]]
         pose_kpt_color = palette[
-            [16, 16, 16, 16, 16, 9, 9, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0] +
-            [0, 0, 0, 0, 0, 0] + [19] * (68 + 42)]
+            [16, 16, 16, 16, 16, 9, 9, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0] + [0, 0, 0, 0, 0, 0] + [19] * (68 + 42)]
         radius = 1
 
         for _, kpts in enumerate(keypoints):
@@ -126,9 +117,7 @@ class HumanPose(CombineBase):
                         kpt[1]), kpt[2]
                     if kpt_score > thresh:
                         r, g, b = pose_kpt_color[kid]
-                        cv2.circle(img, (int(x_coord), int(y_coord)),
-                                    radius, (int(r), int(g), int(b)),
-                                    -1)
+                        cv2.circle(img, (int(x_coord), int(y_coord)), radius, (int(r), int(g), int(b)), -1)
 
                 # draw limbs
                 if skeleton is not None and pose_limb_color is not None:
@@ -145,13 +134,21 @@ class HumanPose(CombineBase):
                                 and kpts[sk[0] - 1, 2] > thresh
                                 and kpts[sk[1] - 1, 2] > thresh):
                             r, g, b = pose_limb_color[sk_id]
-                            cv2.line(
-                                img,
-                                pos1,
-                                pos2, (int(r), int(g), int(b)),
-                                thickness=1)
-
+                            cv2.line(img, pos1, pos2, (int(r), int(g), int(b)), thickness=1)
         return img
+
+    def _visual(self, frame, objs=None, points=None):
+        if objs:
+            for dr in objs:
+                cv2.rectangle(frame, (dr[0], dr[1]), (dr[2], dr[3]), (0, 255, 0), 1, 1)
+        if points:
+            if len(points[0]) == 17:
+                frame = self.visualize_pose17(frame, np.array(points), show_skeleton_labels=True, thresh=self.pose_thr)
+            elif len(points[0]) == 133:
+                frame = self.visualize_pose133(frame, np.array(points), thresh=self.pose_thr)
+            else:
+                raise Exception("Visualization of only 17 points and 133 points is currently supported")
+        return frame
 
     def video_demo(self, video_file, out_root=None, is_show=False):
         if out_root and not os.path.exists(out_root):
@@ -163,17 +160,15 @@ class HumanPose(CombineBase):
         while True:
             try:
                 frame = next(frame_iter)
+                # 获取检测和关键点推理的结果
                 out = self._single_frame(frame[:, :, ::-1])
                 if out is not None:
+                    # objs list 行人的框信息, points list 每个人的关键点信息  
                     objs, points = out
                     if len(objs) < 1:
                         continue
-                    if len(points[0]) == 17:
-                        frame = self.visualize_pose17(frame, np.array(points), show_skeleton_labels=True, thresh=self.pose_thr)
-                    elif len(points[0]) == 133:
-                        frame = self.visualize_pose133(frame, np.array(points), thresh=self.pose_thr)
-                    else:
-                        raise Exception("Visualization of only 17 points and 133 points is currently supported")
+                    # 可视化结果
+                    frame = self._visual(frame, points=points)
                 video_writer.write(frame)
                 if is_show:
                     cv2.imshow("demo", frame)
@@ -182,3 +177,23 @@ class HumanPose(CombineBase):
                 print('Done!')
                 break
         video_writer.release()
+
+    def image_demo(self, path, out_root=None, is_show=False):
+        if out_root and not os.path.exists(out_root):
+            os.makedirs(out_root)
+        out = self._single_image(path)
+        if out is not None:
+            # objs list 行人的框信息, points list 每个人的关键点信息  
+            (objs, points), frame = out
+            if len(objs) < 1:
+                return None
+            frame = self._visual(frame, objs=objs, points=points)
+        else:
+            return None
+        if is_show:
+            cv2.imshow("demo", frame)
+            cv2.waitkey(5000)
+
+        if out_root:
+            cv2.imwrite(os.path.join(out_root, os.path.basename(path)), frame)
+

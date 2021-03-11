@@ -86,7 +86,7 @@ class CombineBase(object):
             return None
         return frame[:, :, ::-1]
 
-    def single_image(self, path):
+    def _single_image(self, path):
         """single image processing
 
         Args:
@@ -98,9 +98,9 @@ class CombineBase(object):
         frame = self._imread(path)
         if frame is None:
             return None
-        return self._single_frame(frame)
+        return self._single_frame(frame), frame[:, :, ::-1]
 
-    def mult_images(self, data_paths):
+    def _mult_images(self, data_paths):
         """Crop detected objects.
 
         Args:
@@ -110,8 +110,8 @@ class CombineBase(object):
             result: Object images list
         """
         outs = []
-        for i, p in tqdm(enumerate(data_paths), total=len(data_paths)):
-            outs.append(self.single_image(p))
+        for _, p in tqdm(enumerate(data_paths), total=len(data_paths)):
+            outs.append(self._single_image(p))
 
     def _video(self, video_file):
         print(video_file)
