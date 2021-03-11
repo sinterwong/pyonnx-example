@@ -43,7 +43,8 @@ python main_classifier_.py --model_path weights/hand-recognition_0.992_3.onnx \
 coming soon
 
 ## Visualization
+### coco-wholebody 133 keypoints(yolov5s + hrnet_w32_dark_128x96)
+![133pose_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/pose/133demo.gif?raw=true)
 
-![133pose_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/keypoints/004.jpg?raw=true)
-
-![17pose_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/detection/zidane.jpg?raw=true)
+### coco 17 keypoints(yolov5s + lpn_50_256x192)
+![17pose_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/pose2/17demo.gif?raw=true)
