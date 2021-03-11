@@ -44,6 +44,6 @@ coming soon
 
 ## Visualization
 
-![jfksdlf](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/keypoints/004.jpg?raw=true)
+![133pose_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/keypoints/004.jpg?raw=true)
 
-![](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/detection/zidane.jpg?raw=true)
+![17pose_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/detection/zidane.jpg?raw=true)
