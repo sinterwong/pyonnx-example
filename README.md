@@ -12,31 +12,25 @@
 - onnxruntime == 1.7.0 or onnxruntime-gpu == 1.3.0
 - opencv-python == 4.2.0.32
 
-
-
 ## Run demo
 
 The demo is named in the format main_xxx_.py, You can run the code with the following example.
 
 ```
-python main_detector_.py --model_path weights/yolov5s.onnx \
-						--im_path data/det/zidane.jpg \
-						--input_size 640 \
-						--out_root data/main_result/detection
+python main_pose_.py --det_model_path weights/yolov5s.onnx \
+			         --pose_model_path data/det/zidane.jpg \
+			         --det_input_size 640 \
+			         --pose_input_size (128,96) \
+			         --type darkpose or baseline \
+			         --video_path data/video/demo.mp4 \
+				 --im_path data/det/zidane.jpg \
+			         --out_root data/main_result/pose
 ```
 
-```
-python main_keypoints_.py --model_path weights/hrnet_w32_dark_256x192.onnx \
-						--im_path data/person/004.jpg \
-						--out_root data/main_result/keypoints
-```
-
-```
-python main_classifier_.py --model_path weights/hand-recognition_0.992_3.onnx \
-						--im_path data/hand/close.jpg \
-						--input_size 64 \
-						--out_root data/main_result/classifier
-```
+## TODO
+- [ ] Gesture recognition combination module added to KCF
+- [ ] Based on gesture recognition to achieve up/down page,play,exit four functions
+- [ ] Realize action recognition based on continuous frame
 
 ## Model zoo
 
