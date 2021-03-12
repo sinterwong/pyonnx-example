@@ -21,8 +21,9 @@ python main_pose_.py --det_model_path weights/yolov5s.onnx \
 			         --pose_model_path data/det/zidane.jpg \
 			         --det_input_size 640 \
 			         --pose_input_size (128,96) \
-			         --type darkpose/baseline \
-			         --video_path/im_path \
+			         --type darkpose or baseline \
+			         --video_path data/video/demo.mp4 \
+				 --im_path data/det/zidane.jpg \
 			         --out_root data/main_result/pose
 ```
 
