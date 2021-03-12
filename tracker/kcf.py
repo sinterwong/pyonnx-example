@@ -2,12 +2,12 @@ import numpy as np
 import cv2
 from numpy.fft import fft2
 from numpy.fft import ifft2
-from utils import gaussian_shaped_labels
-from utils import get_subwindow
-from utils import get_feature
-from utils import gaussian_correlation
-from utils import polynomial_correlation
-from utils import format_box
+from tracker.utils import gaussian_shaped_labels
+from tracker.utils import get_subwindow
+from tracker.utils import get_feature
+from tracker.utils import gaussian_correlation
+from tracker.utils import polynomial_correlation
+from tracker.utils import format_box
 
 
 class KCFtracker(object):

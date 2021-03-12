@@ -10,6 +10,9 @@ import argparse
 
 
 def main():
+    """
+    Demo of classifier based on hand image.
+    """
     opt = parser.parse_args()
     print(opt)
 

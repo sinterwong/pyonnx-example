@@ -34,20 +34,11 @@ class KeypointsDarkPose(Keypoints):
         # print("推理耗时：{}s".format(
         #     (forward_end - forward_start) / cv2.getTickFrequency()))
 
-        # post_start = cv2.getTickCount()
+        post_start = cv2.getTickCount()
         preds, maxvals = self._get_final_preds_darkpose(outputs, [c], [s])
-        # preds, maxvals = self._get_final_preds(outputs, [c], [s])
-        # preds[:, maxvals.squeeze() < self.conf_thres] = -1
         preds = np.concatenate([preds, maxvals], axis=2).squeeze()
-        # 原始尺度
-        # rh = self.input_size[0] / h
-        # rw = self.input_size[1] / w
-        # preds[..., 1] = preds[..., 1] * \
-        #     (self.input_size[0] / outputs.shape[2]) / rh
-        # preds[..., 0] = preds[..., 0] * \
-        #     (self.input_size[1] / outputs.shape[3]) / rw
-        # post_end = cv2.getTickCount()
-        # print("后处理耗时：{}s".format((post_end - post_start) / cv2.getTickFrequency()))
+        post_end = cv2.getTickCount()
+        print("后处理耗时：{}s".format((post_end - post_start) / cv2.getTickFrequency()))
 
         return preds
 

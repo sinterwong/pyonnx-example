@@ -12,6 +12,9 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "8"
 
 
 def main():
+    """
+    Top-down estimation of human pose demo
+    """
 
     opt = parser.parse_args()
     print(opt)
@@ -59,3 +62,4 @@ if __name__ == "__main__":
     parser.add_argument("--out_root", type=str,
                         default="data/main_result/pose", help="result output folder")
     main()
+

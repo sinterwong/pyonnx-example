@@ -11,6 +11,9 @@ import argparse
 os.environ["CUDA_VISIBLE_DEVICES"] = "8"
 
 def main():
+    """
+    Demo of keypoints detect based on person image.
+    """
 
     opt = parser.parse_args()
     print(opt)

@@ -9,6 +9,9 @@ import argparse
 
 
 def main():
+    """
+    detection Demo
+    """
     opt = parser.parse_args()
     print(opt)
 
