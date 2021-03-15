@@ -33,6 +33,10 @@ def main():
     if opt.im_path:
         gesture.image_demo(opt.im_path, opt.out_root, is_show=False)
 
+    if opt.action_video_path:
+        gesture.video_tracker_demo(opt.action_video_path, opt.out_root, is_show=False)
+    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -49,9 +53,11 @@ if __name__ == "__main__":
     parser.add_argument("--det_iou_thr", type=float,
                         default=0.45, help="Det threshold that iou")
     parser.add_argument("--video_path", type=str,
-                        default="/home/wangjq/wangxt/datasets/hand_dataset_record/video/004.mp4", help="video path")
+                        default="", help="video path")
     parser.add_argument("--im_path", type=str,
-                        default="data/person/003.jpg", help="single image path")
+                        default="", help="single image path")
+    parser.add_argument("--action_video_path", type=str,
+                        default="/home/wangjq/wangxt/datasets/hand_dataset_record/video/005.mp4", help="single image path")              
     parser.add_argument("--out_root", type=str,
                         default="data/main_result/gesture", help="result output folder")
     main()

@@ -2,7 +2,7 @@
 
 ## introduce
 
-​	Use python to realize the reasoning function of the deep learning model based on the onnxruntime reasoning framework. The onnx model can be converted into most mainstream deep learning inference framework models, so you can test whether the onnx model is correct before deploying the model.
+​	Use python to realize the inference function of the deep learning model based on the onnxruntime reasoning framework. The onnx model can be converted into most mainstream deep learning inference framework models, so you can test whether the onnx model is correct before deploying the model.
 
  Note: The model here is trained by pytorch 1.6 and converted  by onnx 1.8.1
 
