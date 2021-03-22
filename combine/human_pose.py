@@ -9,10 +9,10 @@ from .base import CombineBase
 class HumanPose(CombineBase):
     def __init__(self, det_model_file, pose_model_file, det_input_size, pose_input_size, pose_type='darkpose', det_conf_thr=0.5, det_iou_thr=0.45, pose_thr=0.25):
 
-        # load detection model 
+        # load detection model
         self._detector = DetectorYolov5(
             det_model_file, input_size=det_input_size, conf_thres=det_conf_thr, iou_thres=det_iou_thr)
-        
+
         # load pose model, 不同的类型仅后处理的策略不同
         if pose_type == "baseline":
             self._pose_detector = KeypointsLPN(
@@ -21,9 +21,28 @@ class HumanPose(CombineBase):
             self._pose_detector = KeypointsDarkPose(
                 pose_model_file, input_size=pose_input_size, conf_thres=pose_thr)
         else:
-            raise Exception("HumanPose init failed: Unsupported type {}".format(pose_type))
+            raise Exception(
+                "HumanPose init failed: Unsupported type {}".format(pose_type))
         self.pose_thr = pose_thr
-    
+
+        self.body = [[1, 2], [3, 4], [5, 6], [7, 8], 
+                     [9, 10], [11, 12], [13, 14], [15, 16]]
+        self.foot = [[17, 20], [18, 21], [19, 22]]
+        self.face = [[23, 39], [24, 38], [25, 37], [26, 36], 
+                     [27, 35], [28, 34], [29, 33], [30, 32], 
+                     [40, 49], [41, 48], [42, 47], [43, 46], 
+                     [44, 45], [54, 58], [55, 57], [59, 68], 
+                     [60, 67], [61, 66], [62, 65], [63, 70], 
+                     [64, 69], [71, 77], [72, 76], [73, 75], 
+                     [78, 82], [79, 81], [83, 87], [84, 86], 
+                     [88, 90]]
+        self.hand = [[91, 112], [92, 113], [93, 114], [94, 115], 
+                     [95, 116], [96, 117], [97, 118], [98, 119], 
+                     [99, 120], [100, 121], [101, 122], [102, 123], 
+                     [103, 124], [104, 125], [105, 126], [106, 127],
+                     [107, 128], [108, 129], [109, 130], [110, 131], 
+                     [111, 132]]
+
     def _single_frame(self, img):
         out = self._detector.forward(img)
         if out.shape[0] < 1:
@@ -45,26 +64,29 @@ class HumanPose(CombineBase):
         return objs, points
 
     def _draw_skeleton_17(self, aa, kp, show_skeleton_labels=False):
-        skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12], [7, 13], [6, 7], [6, 8], [7, 9], [8, 10], [9, 11], [2, 3], [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
+        skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12], [7, 13], [6, 7], [
+            6, 8], [7, 9], [8, 10], [9, 11], [2, 3], [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
 
-        kp_names = ['nose', 'l_eye', 'r_eye', 'l_ear', 'r_ear', 'l_shoulder', 
-        'r_shoulder', 'l_elbow', 'r_elbow', 'l_wrist', 'r_wrist', 
-        'l_hip', 'r_hip', 'l_knee', 'r_knee', 'l_ankle', 'r_ankle']
+        kp_names = ['nose', 'l_eye', 'r_eye', 'l_ear', 'r_ear', 'l_shoulder',
+                    'r_shoulder', 'l_elbow', 'r_elbow', 'l_wrist', 'r_wrist',
+                    'l_hip', 'r_hip', 'l_knee', 'r_knee', 'l_ankle', 'r_ankle']
 
         for i, j in skeleton:
             if kp[i-1][0] >= 0 and kp[i-1][1] >= 0 and kp[j-1][0] >= 0 and kp[j-1][1] >= 0 and \
-                (len(kp[i-1]) <= 2 or (len(kp[i-1]) > 2 and  kp[i-1][2] > 0.1 and kp[j-1][2] > 0.1)):
-                cv2.line(aa, tuple(kp[i-1][:2]), tuple(kp[j-1][:2]), (0,255,255), 2)
+                    (len(kp[i-1]) <= 2 or (len(kp[i-1]) > 2 and kp[i-1][2] > 0.1 and kp[j-1][2] > 0.1)):
+                cv2.line(aa, tuple(kp[i-1][:2]),
+                         tuple(kp[j-1][:2]), (0, 255, 255), 2)
         for j in range(len(kp)):
             if kp[j][0] >= 0 and kp[j][1] >= 0:
 
                 if len(kp[j]) <= 2 or (len(kp[j]) > 2 and kp[j][2] > 1.1):
-                    cv2.circle(aa, tuple(kp[j][:2]), 2, tuple((0,0,255)), 2)
+                    cv2.circle(aa, tuple(kp[j][:2]), 2, tuple((0, 0, 255)), 2)
                 elif len(kp[j]) <= 2 or (len(kp[j]) > 2 and kp[j][2] > 0.1):
-                    cv2.circle(aa, tuple(kp[j][:2]), 2, tuple((255,0,0)), 2)
+                    cv2.circle(aa, tuple(kp[j][:2]), 2, tuple((255, 0, 0)), 2)
 
                 if show_skeleton_labels and (len(kp[j]) <= 2 or (len(kp[j]) > 2 and kp[j][2] > 0.1)):
-                    cv2.putText(aa, kp_names[j], tuple(kp[j][:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0))
+                    cv2.putText(aa, kp_names[j], tuple(
+                        kp[j][:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0))
 
     def visualize_pose17(self, img, keypoints, show_skeleton_labels=False, thresh=0.2):
         im = np.array(img).astype(np.uint8)
@@ -73,6 +95,23 @@ class HumanPose(CombineBase):
         return im
 
     def visualize_pose133(self, img, keypoints, thresh=0.2):
+        """
+        body = [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12], [13, 14],
+                [15, 16]]
+        foot = [[17, 20], [18, 21], [19, 22]]
+
+        face = [[23, 39], [24, 38], [25, 37], [26, 36], [27, 35], [28, 34],
+                [29, 33], [30, 32], [40, 49], [41, 48], [42, 47], [43, 46],
+                [44, 45], [54, 58], [55, 57], [59, 68], [60, 67], [61, 66],
+                [62, 65], [63, 70], [64, 69], [71, 77], [72, 76], [73, 75],
+                [78, 82], [79, 81], [83, 87], [84, 86], [88, 90]]
+
+        hand = [[91, 112], [92, 113], [93, 114], [94, 115], [95, 116],
+                [96, 117], [97, 118], [98, 119], [99, 120], [100, 121],
+                [101, 122], [102, 123], [103, 124], [104, 125], [105, 126],
+                [106, 127], [107, 128], [108, 129], [109, 130], [110, 131],
+                [111, 132]]
+        """
         img_h, img_w, _ = img.shape
         skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12],
                     [7, 13], [6, 7], [6, 8], [7, 9], [8, 10], [9, 11], [2, 3],
@@ -88,12 +127,13 @@ class HumanPose(CombineBase):
                     [130, 131], [131, 132], [132, 133]]
 
         palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102],
-                        [230, 230, 0], [255, 153, 255], [153, 204, 255],
-                        [255, 102, 255], [255, 51, 255], [102, 178, 255],
-                        [51, 153, 255], [255, 153, 153], [255, 102, 102],
-                        [255, 51, 51], [153, 255, 153], [102, 255, 102],
-                        [51, 255, 51], [0, 255, 0], [0, 0, 255], [255, 0, 0],
-                        [255, 255, 255]])
+                            [230, 230, 0], [255, 153, 255], [153, 204, 255],
+                            [255, 102, 255], [255, 51, 255], [102, 178, 255],
+                            [51, 153, 255], [255, 153, 153], [255, 102, 102],
+                            [255, 51, 51], [153, 255, 153], [102, 255, 102],
+                            [51, 255, 51], [0, 255, 0], [
+                                0, 0, 255], [255, 0, 0],
+                            [255, 255, 255]])
 
         pose_limb_color = palette[
             [0, 0, 0, 0, 7, 7, 7, 9, 9, 9, 9, 9, 16, 16, 16, 16, 16, 16, 16] +
@@ -117,7 +157,8 @@ class HumanPose(CombineBase):
                         kpt[1]), kpt[2]
                     if kpt_score > thresh:
                         r, g, b = pose_kpt_color[kid]
-                        cv2.circle(img, (int(x_coord), int(y_coord)), radius, (int(r), int(g), int(b)), -1)
+                        cv2.circle(img, (int(x_coord), int(y_coord)),
+                                   radius, (int(r), int(g), int(b)), -1)
 
                 # draw limbs
                 if skeleton is not None and pose_limb_color is not None:
@@ -134,20 +175,25 @@ class HumanPose(CombineBase):
                                 and kpts[sk[0] - 1, 2] > thresh
                                 and kpts[sk[1] - 1, 2] > thresh):
                             r, g, b = pose_limb_color[sk_id]
-                            cv2.line(img, pos1, pos2, (int(r), int(g), int(b)), thickness=1)
+                            cv2.line(img, pos1, pos2,
+                                     (int(r), int(g), int(b)), thickness=1)
         return img
 
     def _visual(self, frame, objs=None, points=None):
         if objs:
             for dr in objs:
-                cv2.rectangle(frame, (dr[0], dr[1]), (dr[2], dr[3]), (0, 255, 0), 1, 1)
+                cv2.rectangle(frame, (dr[0], dr[1]),
+                              (dr[2], dr[3]), (0, 255, 0), 1, 1)
         if points:
             if len(points[0]) == 17:
-                frame = self.visualize_pose17(frame, np.array(points), show_skeleton_labels=True, thresh=self.pose_thr)
+                frame = self.visualize_pose17(frame, np.array(
+                    points), show_skeleton_labels=True, thresh=self.pose_thr)
             elif len(points[0]) == 133:
-                frame = self.visualize_pose133(frame, np.array(points), thresh=self.pose_thr)
+                frame = self.visualize_pose133(
+                    frame, np.array(points), thresh=self.pose_thr)
             else:
-                raise Exception("Visualization of only 17 points and 133 points is currently supported")
+                raise Exception(
+                    "Visualization of only 17 points and 133 points is currently supported")
         return frame
 
     def video_demo(self, video_file, out_root=None, is_show=False):
@@ -156,14 +202,15 @@ class HumanPose(CombineBase):
         frame_iter = self._video(video_file)
         fps, h, w = next(frame_iter)
         # self._video 之后生成 self.ofps, self.ow, self.oh
-        video_writer = cv2.VideoWriter(os.path.join(out_root, os.path.basename(video_file)), cv2.VideoWriter_fourcc(*'XVID'), fps, (w, h))
+        video_writer = cv2.VideoWriter(os.path.join(out_root, os.path.basename(
+            video_file)), cv2.VideoWriter_fourcc(*'XVID'), fps, (w, h))
         while True:
             try:
                 frame = next(frame_iter)
                 # 获取检测和关键点推理的结果
                 out = self._single_frame(frame[:, :, ::-1])
                 if out is not None:
-                    # objs list 行人的框信息, points list 每个人的关键点信息  
+                    # objs list 行人的框信息, points list 每个人的关键点信息
                     objs, points = out
                     if len(objs) < 1:
                         continue
@@ -183,7 +230,7 @@ class HumanPose(CombineBase):
             os.makedirs(out_root)
         out = self._single_image(path)
         if out is not None:
-            # objs list 行人的框信息, points list 每个人的关键点信息  
+            # objs list 行人的框信息, points list 每个人的关键点信息
             (objs, points), frame = out
             if len(objs) < 1:
                 return None
@@ -196,4 +243,3 @@ class HumanPose(CombineBase):
 
         if out_root:
             cv2.imwrite(os.path.join(out_root, os.path.basename(path)), frame)
-
