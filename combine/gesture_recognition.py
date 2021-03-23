@@ -8,17 +8,18 @@ from .base import CombineBase
 
 
 class GestureRecognition(CombineBase):
-    def __init__(self, det_model_file, cls_model_file, det_input_size, cls_input_size, det_conf_thr=0.5, det_iou_thr=0.45, is_tracker=True):
+    def __init__(self, det_model_file, cls_model_file, det_input_size, cls_input_size, idx2classes, det_conf_thr=0.5, det_iou_thr=0.45, is_tracker=True):
 
-        # load detection model 
+        # load detection model
         self._detector = DetectorYolov5(
             det_model_file, input_size=det_input_size, conf_thres=det_conf_thr, iou_thres=det_iou_thr)
-        
+
         # load classifier model
-        self._classifier = Classifier(cls_model_file, input_size=cls_input_size)
+        self._classifier = Classifier(
+            cls_model_file, input_size=cls_input_size)
 
         # idx -> classes
-        self.idx2classes = dict(enumerate(['0', 'close', 'open']))
+        self.idx2classes = idx2classes
 
         self.is_tracker = is_tracker
 
@@ -42,15 +43,23 @@ class GestureRecognition(CombineBase):
     def _visual(self, frame, objs, categorys):
         if objs:
             for i, dr in enumerate(objs):
-                if categorys[i] == 0:
-                    continue
-                elif categorys[i] == 1:
-                    # elif dr[-1] == 1 or dr[-1] == 2:
-                    cv2.rectangle(frame, (dr[0], dr[1]), (dr[2], dr[3]), (0, 0, 255), 2, 1)
-                    cv2.putText(frame, self.idx2classes[categorys[i]], (dr[0], dr[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 1)
-                else:
-                    cv2.rectangle(frame, (dr[0], dr[1]), (dr[2], dr[3]), (0, 255, 0), 2, 1)
-                    cv2.putText(frame, self.idx2classes[categorys[i]], (dr[0], dr[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 1)
+                cv2.rectangle(frame, (dr[0], dr[1]),
+                              (dr[2], dr[3]), (0, 0, 255), 3, 1)
+                cv2.putText(frame, self.idx2classes[categorys[i]], (
+                    dr[0], dr[1] + dr[3] // 2), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 255), 1)
+                # if categorys[i] == 0:
+                #     continue
+                # elif categorys[i] == 1:
+                #     # elif dr[-1] == 1 or dr[-1] == 2:
+                #     cv2.rectangle(frame, (dr[0], dr[1]),
+                #                   (dr[2], dr[3]), (0, 0, 255), 3, 1)
+                #     cv2.putText(frame, self.idx2classes[categorys[i]], (
+                #         dr[0], dr[1]), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 255), 1)
+                # else:
+                #     cv2.rectangle(frame, (dr[0], dr[1]),
+                #                   (dr[2], dr[3]), (0, 255, 0), 3, 1)
+                #     cv2.putText(frame, self.idx2classes[categorys[i]], (
+                #         dr[0], dr[1]), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 0, 0), 1)
         return frame
 
     def video_demo(self, video_file, out_root=None, is_show=False):
@@ -59,7 +68,8 @@ class GestureRecognition(CombineBase):
         frame_iter = self._video(video_file)
         fps, h, w = next(frame_iter)
         # self._video 之后生成 self.ofps, self.ow, self.oh
-        video_writer = cv2.VideoWriter(os.path.join(out_root, os.path.basename(video_file)), cv2.VideoWriter_fourcc(*'XVID'), fps, (w, h))
+        video_writer = cv2.VideoWriter(os.path.join(out_root, os.path.basename(
+            video_file)), cv2.VideoWriter_fourcc(*'XVID'), fps, (w, h))
         while True:
             try:
                 frame = next(frame_iter)
@@ -104,7 +114,8 @@ class GestureRecognition(CombineBase):
             os.makedirs(out_root)
         frame_iter = self._video(video_file)
         fps, h, w = next(frame_iter)
-        video_writer = cv2.VideoWriter(os.path.join(out_root, os.path.basename(video_file)), cv2.VideoWriter_fourcc(*'XVID'), fps, (w, h))
+        video_writer = cv2.VideoWriter(os.path.join(out_root, os.path.basename(
+            video_file)), cv2.VideoWriter_fourcc(*'XVID'), fps, (w, h))
 
         count = -1
         objs = None
@@ -122,11 +133,13 @@ class GestureRecognition(CombineBase):
                                 continue
                             # TODO 仅跟踪一个目标
                             self.tracker.init(frame, objs[0][0:4])
-                            frame = self._visual(frame, objs=objs, categorys=categorys)
+                            frame = self._visual(
+                                frame, objs=objs, categorys=categorys)
                     else:
                         if objs is not None:
                             x, y, w, h = self.tracker.update(frame)
-                            cv2.rectangle(frame, (x, y), (x + w, y + h), (100, 0, 100), 2, 1)
+                            cv2.rectangle(
+                                frame, (x, y), (x + w, y + h), (100, 0, 100), 2, 1)
                             cv2.imwrite('out.jpg', frame)
                         else:
                             out = self._single_frame(frame[:, :, ::-1])
@@ -138,8 +151,9 @@ class GestureRecognition(CombineBase):
                             continue
                         # TODO 仅跟踪一个目标
                         self.tracker.init(frame, objs[0][0:4])
-                        frame = self._visual(frame, objs=objs, categorys=categorys)
-                        
+                        frame = self._visual(
+                            frame, objs=objs, categorys=categorys)
+
                 video_writer.write(frame)
                 if is_show:
                     cv2.imshow("demo", frame)
@@ -147,4 +161,4 @@ class GestureRecognition(CombineBase):
             except StopIteration as e:
                 print('Done!')
                 break
-        video_writer.release()    
+        video_writer.release()

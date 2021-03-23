@@ -1,3 +1,4 @@
 from .human_pose import HumanPose
 from .gesture_recognition import GestureRecognition
+from .gesture_recognition_pose import GestureRecognitionPose
 from .human_action_recognition import HumanActionRecognition

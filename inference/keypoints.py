@@ -19,8 +19,10 @@ class Keypoints(ONNXBase):
 
     def preprocessing(self, image, center, scale, is_norm=True, sub_mean=None, div_std=None):
 
-        trans = get_affine_transform(center, scale, 0, (self.input_size[1], self.input_size[0]), inv=0)
-        data = cv2.warpAffine(image, trans, (self.input_size[1], self.input_size[0]),flags=cv2.INTER_LINEAR).astype(np.float32)
+        trans = get_affine_transform(
+            center, scale, 0, (self.input_size[1], self.input_size[0]), inv=0)
+        data = cv2.warpAffine(
+            image, trans, (self.input_size[1], self.input_size[0]), flags=cv2.INTER_LINEAR).astype(np.float32)
 
         # cv2.imwrite("data.jpg", data[:, :, ::-1])
 
@@ -162,3 +164,14 @@ class Keypoints(ONNXBase):
             )
 
         return preds, maxvals
+
+    def _get_final_preds_reg(self, output, width, height):
+        output = np.squeeze(output)
+        x, y = [], []
+        for i in range(int(output.shape[0]/2)):
+            x.append(output[i*2+0]*float(width))
+            y.append(output[i*2+1]*float(height))
+
+        preds = np.array(list(zip(x, y)))
+
+        return preds
