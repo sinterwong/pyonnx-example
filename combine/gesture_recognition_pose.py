@@ -22,15 +22,34 @@ class GestureRecognitionPose(CombineBase):
             raise Exception(
                 "HumanPose init failed: Unsupported type {}".format(pose_type))
 
-        self.action_dict = {
+        # 含大拇指
+        self.action_dict1 = {
+            "00000": "fist",
+            "01000": "one",
+            "00100": "fuck",
+            "11001": "love you",
+            "01100": "Yeah",
+            "01110": "three",
+            "01111": "four",
+            "11111": "palm",
+            "00111": "OK",
+            "00001": "low",
+            "11000": "gun",
+            "10001": "six",
+            "10000": "np"
+        }
+
+        # 不含大拇指
+        self.action_dict2 = {
             "0000": "fist",
             "1000": "one",
             "0100": "fuck",
+            "1001": "love you",
             "1100": "Yeah",
             "1110": "three",
             "1111": "palm",
             "0111": "OK",
-            "0001": "low"
+            "0001": "low",
         }
 
         self.a_thr = angle_thr
@@ -98,8 +117,8 @@ class GestureRecognitionPose(CombineBase):
         Return:
             cos_angles(list(int)): 向量角度
         """
-        # 6(食指), 10(中指), 14(无名指), 18(小拇指) 手指中心
-        center_points = points[[6, 10, 14, 18]][:, :2]
+        # 2(大拇指), 6(食指), 10(中指), 14(无名指), 18(小拇指) 手指中心
+        center_points = points[[2, 6, 10, 14, 18]][:, :2]
 
         # 手腕坐标
         root_point = points[0][:2]
@@ -108,9 +127,9 @@ class GestureRecognitionPose(CombineBase):
         vet_center_points = np.array(
             [np.concatenate([root_point, p], axis=0) for p in center_points])
 
-        # 指间向量获取  8(食指), 12(中指), 16(无名指), 20(小拇指)
-        first_points = points[[8, 12, 16, 20]][:, :2]
-        second_points = points[[7, 11, 15, 19]][:, :2]
+        # 指间向量获取  4(大拇指), 8(食指), 12(中指), 16(无名指), 20(小拇指)
+        first_points = points[[4, 8, 12, 16, 20]][:, :2]
+        second_points = points[[3, 7, 11, 15, 19]][:, :2]
         vet_fingertip_points = np.concatenate(
             [second_points, first_points], axis=1)
 
@@ -133,27 +152,47 @@ class GestureRecognitionPose(CombineBase):
         status = self._finger_status(points) < a_thr
         return status
 
-    def hand_action(self, status):
+    def hand_action(self, status, pollex=False):
         """ 根据手指的开合状态判断手部动作
         Args:
             status(list(bool)): 四个手指（食指, 中指, 无名指, 小拇指）的状态, True 为开, False 为合
         Return:
             action(str):
-                explain: 
-                    status = [False, False, False, False]  握拳(fist)
-                    status = [True, False, False, False]   一(one)
-                    status = [False, True, False, False]   竖中指(fuck)
-                    status = [True, True, False, False]    耶(Yeah)
-                    status = [True, True, True, False]     三(three))
-                    status = [True, True, True, True]      掌(palm)
-                    status = [False, True, True, True]     OK(OK)
-                    status = [False, False, False, True]   鄙视(low)
+                explain（包含大拇指）: 
+                    status = [False, False, False, False, False]  握拳(fist)
+                    status = [False, True, False, False, False]   一(one)
+                    status = [False, False, True, False, False]   竖中指(fuck)
+                    status = [True, True, False, False, True]     爱你(IOU)
+                    status = [False, True, True, False, False]    耶(Yeah)
+                    status = [False, True, True, True, False]     三(three)
+                    status = [False, True, True, True, True]      四(Four)
+                    status = [True, True, True, True, True]       掌(palm)
+                    status = [False, False, True, True, True]     OK(OK)
+                    status = [False, False, False, False, True]   鄙视(low)
+                    status = [True, True, False, False, False]    手枪(gun)
+                    status = [True, False, False, False, True]    六(six)
+                    status = [True, False, False, False, True]    赞(np)
+
+                explain（不包含大拇指）: 
+                    status = [False, False, False, False]   握拳(fist)
+                    status = [True, False, False, False]    一(one)
+                    status = [False, True, False, False]    竖中指(fuck)
+                    status = [True, False, False, True]     爱你(IOU)
+                    status = [True, True, False, False]     耶(Yeah)
+                    status = [True, True, True, False]      三(three)
+                    status = [True, True, True, True]       掌(palm)
+                    status = [False, True, True, True]      OK(OK)
+                    status = [False, False, False, True]    鄙视(low)
         """
         # print("".join(list(map(str, list(map(int, status))))))
         action_encode = "".join(list(map(str, list(map(int, status)))))
-        if action_encode in self.action_dict.keys():
-            return self.action_dict[action_encode]
-        else:
+        try:
+            if pollex:
+                return self.action_dict1[action_encode]
+            else:
+                action_encode = action_encode[1:]
+                return self.action_dict2[action_encode]
+        except Exception as e:
             return "nonsupport"
 
     def visualize_hand_pose(self, frame, hand_, x, y):
@@ -250,7 +289,7 @@ class GestureRecognitionPose(CombineBase):
                     for pi, p in enumerate(points):
                         # 获取除大拇指以外其余手指的状态
                         status = self.finger_status(np.array(p), a_thr=self.a_thr)
-                        action = self.hand_action(status)
+                        action = self.hand_action(status, True)
                         cv2.putText(frame, action, (objs[pi][0], objs[pi][1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 1)
                 video_writer.write(frame)
                 if is_show:

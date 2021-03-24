@@ -38,7 +38,7 @@ if __name__ == "__main__":
     parser.add_argument("--det_model_path", type=str,
                         default="weights/handv2-yolov5-320.onnx", help="det onnx model path")
     parser.add_argument("--pose_model_path", type=str,
-                        default="weights/squeezenet1_1-size-256-loss-0.onnx", help="cls onnx model path")
+                        default="weights/resnet_50-size-256-wingloss102-0.onnx", help="cls onnx model path")
     parser.add_argument("--det_input_size", type=tuple,
                         default=320, help="det input size")
     parser.add_argument("--pose_input_size", type=tuple,
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     parser.add_argument("--type", type=str, default="regression",
                         help="Currently supports ['regression']")
     parser.add_argument("--video_path", type=str,
-                        default="data/video/gesture-4.mp4", help="video path")
+                        default="data/video/gesture_demo2.mp4", help="video path")
     parser.add_argument("--im_path", type=str,
                         default="data/person/008.jpg", help="single image path")
     parser.add_argument("--out_root", type=str,
