@@ -45,3 +45,6 @@ coming soon
 
 ### hand sliding motion(yolov5s + resnet18 + kcf)
 ![slide_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/gesture/fist_move.gif?raw=true)
+
+### hand gestures(yolov5s + res50_hand_pose)
+![gesture_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/gesture2/gesture.gif?raw=true)
