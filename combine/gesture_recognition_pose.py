@@ -289,7 +289,7 @@ class GestureRecognitionPose(CombineBase):
                     for pi, p in enumerate(points):
                         # 获取除大拇指以外其余手指的状态
                         status = self.finger_status(np.array(p), a_thr=self.a_thr)
-                        action = self.hand_action(status, True)
+                        action = self.hand_action(status, False)
                         cv2.putText(frame, action, (objs[pi][0], objs[pi][1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 1)
                 video_writer.write(frame)
                 if is_show:
