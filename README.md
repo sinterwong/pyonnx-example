@@ -43,5 +43,5 @@ coming soon
 ### coco 17 keypoints(yolov5s + lpn_50_256x192)
 ![17pose_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/pose2/17demo.gif?raw=true)
 
-### based on classification(yolov5s + resnet18 + kcf)
+### hand sliding motion(yolov5s + resnet18 + kcf)
 ![slide_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/gesture/fist_move.gif?raw=true)
