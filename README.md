@@ -34,7 +34,13 @@ python main_pose_.py --det_model_path weights/yolov5s.onnx \
 
 ## Model zoo
 
-coming soon
+| model type | link |
+| ---- | ---- |
+| yolov5s | [提取码:04y8](https://pan.baidu.com/s/1jYgQ_1ZlFxr4idyl-5hXlA)  |
+| LPN-coco17  | [提取码:eito](https://pan.baidu.com/s/1RbOjEBbnnplOE5MzyFjyjw) |
+| hrnet_dark-wholebody  | [提取码:xiap](https://pan.baidu.com/s/1cJGnoh07M7nwwO8s6x5CBw) |
+| hand-pose | [提取码:x9ar](https://pan.baidu.com/s/1wl6B6SI6_kisDyO2THa9Mg) |
+| hand-recognition | [提取码:h898](https://pan.baidu.com/s/1wuXDQKKAJK28-PcKF-vJsw) |
 
 ## Visualization
 ### coco-wholebody 133 keypoints(yolov5s + hrnet_w32_dark_128x96)
@@ -48,3 +54,13 @@ coming soon
 
 ### hand gestures(yolov5s + res50_hand_pose)
 ![gesture_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/gesture2/gesture.gif?raw=true)
+
+## Reference
+<https://github.com/ultralytics/yolov5>
+
+<https://github.com/zhang943/lpn-pytorch>
+
+<https://codechina.csdn.net/EricLee/handpose_x>
+
+<https://github.com/open-mmlab/mmpose>
+
