@@ -241,7 +241,7 @@ class GestureRecognition(CombineBase):
         # self._video 之后生成 self.ofps, self.ow, self.oh
         video_writer = cv2.VideoWriter(os.path.join(out_root, os.path.basename(
             video_file)), cv2.VideoWriter_fourcc(*'XVID'), fps, (w, h))
-        
+
         # 启动序列, 大于多少时启动判罚
         is_start, sn = [], 20
         tracker_state = False
@@ -250,6 +250,13 @@ class GestureRecognition(CombineBase):
         real_cp = None
         # 调整量
         up_val = 0
+        # 调整速率
+        rate = 50
+        # 跟踪移动量（队列）
+        txs = []
+        tys = []
+        t_len = 20  # 多少帧判断一次跟踪器跟丢了
+        t_offset_thr = 30
         while True:
             try:
                 frame = next(frame_iter)
@@ -262,13 +269,13 @@ class GestureRecognition(CombineBase):
                         real_cp = [obj[0] + (obj[2] - obj[0]) / 2, obj[1] + (obj[3] - obj[1]) / 2]
                         self.tracker.init(frame, obj[:4])
                         tracker_state = True
-                        # 状态判断完成之后回到初始化
+                    # 状态判断完成之后回到初始化
                     is_start = []
                 if not tracker_state:
                     # 获取检测和关键点推理的结果
                     out = self._single_frame(frame[:, :, ::-1])
                     # 标定观测区域
-                    cv2.rectangle(frame, (self.field_view[0], self.field_view[1]), (self.field_view[2], self.field_view[3]), (100, 255, 125), 3, 1)
+                    cv2.rectangle(frame, (self.field_view[0], self.field_view[1]), (self.field_view[2], self.field_view[3]), (100, 97, 125), 3, 1)
                     if out is not None:
                         objs, categorys = out
                         if len(objs) < 1:
@@ -279,8 +286,36 @@ class GestureRecognition(CombineBase):
                         # 可视化结果
                         frame = self._visual(frame, objs=objs, categorys=categorys)
                 else:
+
                     # 计算和上一帧 real_cp 的移动量并更新real_cp
                     x, y, w, h = self.tracker.update(frame)
+
+                    # 如何判断跟踪器跟不上了？
+                    # 根据10帧内的x1 和 y1的变化情况
+                    if len(txs) == t_len:
+                        # 每过t_len 帧进行一次判断, 看是否没跟上
+                        if ((sum(txs) / t_len)) - txs[0] < t_offset_thr and ((sum(tys) / t_len)) - tys[0] < t_offset_thr:
+                            # 可能存在两个选项
+                            #   1. 跟踪器跟丢了
+                            #   2. 暂停或者播放的操作
+                            # 来个判断是否是暂停或者播放的动作的函数
+                            tracker_state = False
+                            txs = []
+                            tys = []
+                            up_val = 0
+                            real_cp = None
+                            # 不往下走了就
+                            continue
+                        else:
+                            # 弹出第一个并向后插入
+                            txs.pop(0)
+                            txs.append(x)
+                            tys.pop(0)
+                            tys.append(y)
+                    else:
+                        txs.append(x)
+                        tys.append(y)
+                        
                     cx = x + w / 2
                     cy = y + h / 2
 
@@ -288,7 +323,7 @@ class GestureRecognition(CombineBase):
                     y_offset = cy - real_cp[1]
 
                     # 全局调整量
-                    up_val += int(x_offset / w * 50)
+                    up_val += int(x_offset / w * rate)
 
                     # 更新 real_cp
                     real_cp = [cx, cy]
@@ -296,10 +331,15 @@ class GestureRecognition(CombineBase):
                     frame = frame.astype(np.int32)
                     # 跟踪已经启动, 直到视频结束
                     if start_type == 1:
-                        # 拳启动，调整 R 通道
-                        frame[:, :, 0] += up_val
+                        # 拳启动可能存在两个任务：
+                        #   1. 调整 R 通道 
+                        #   2. 播放
+                        frame[:, :, 2] += up_val
                     else:
-                        # 掌启动，调整 B 通道
+                        # 掌启动可能存在两个任务：
+                        #   1. 调整 B 通道 
+                        #   2. 播放
+                        
                         frame[:, :, 0] += up_val
 
                 frame = np.clip(frame, 0, 255).astype(np.uint8)
