@@ -2,11 +2,11 @@ from pathlib import Path
 import os
 import cv2
 import numpy as np
-from .keypoints import Keypoints
+from ..keypoints import Keypoints
 from tools.pose_transforms import xywh2cs
 
 
-class KeypointsLPN(Keypoints):
+class KeypointsDarkPose(Keypoints):
     def __init__(self, weights, input_size=(256, 192), conf_thres=0.2):
         assert os.path.exists(weights), "model file is not found!"
         self.input_size = input_size
@@ -29,15 +29,15 @@ class KeypointsLPN(Keypoints):
 
         # forward_start = cv2.getTickCount()
         input_feed = self._get_input_feed(self.input_name, data)
+
         outputs = self.session.run(self.output_name, input_feed=input_feed)[0]
+
         # forward_end = cv2.getTickCount()
         # print("推理耗时：{}s".format(
         #     (forward_end - forward_start) / cv2.getTickFrequency()))
 
         # post_start = cv2.getTickCount()
-        preds, maxvals = self._get_final_preds(outputs, [c], [s])
-        # preds, maxvals = self._get_final_preds_darkpose(outputs, [c], [s])
-        # preds[:, maxvals.squeeze() < self.conf_thres] = -1
+        preds, maxvals = self._get_final_preds_darkpose(outputs, [c], [s])
         preds = np.concatenate([preds, maxvals], axis=2).squeeze()
         # post_end = cv2.getTickCount()
         # print("后处理耗时：{}s".format((post_end - post_start) / cv2.getTickFrequency()))
@@ -46,8 +46,8 @@ class KeypointsLPN(Keypoints):
 
 
 if __name__ == "__main__":
-    weights = "../weights/pose_coco/lpn_50_256x192.onnx"
-    detector = KeypointsLPN(weights)
+    weights = "../weights/hrnet_w32_coco_wholebody_256x192_dark-469327ef_20200922.onnx"
+    detector = KeypointsDarkPose(weights)
     im_path = "../data/person/000.jpg"
     img = cv2.imread(im_path)[:, :, ::-1]
     show_img = img[:, :, ::-1].copy()
@@ -65,4 +65,4 @@ if __name__ == "__main__":
 
     for i, p in enumerate(points):
         cv2.circle(show_img, tuple(p[:2].astype(np.int32)), 5, (0, 0, 255), 2)
-    cv2.imwrite('out.jpg', show_img)
+    cv2.imwrite('out2.jpg', show_img)

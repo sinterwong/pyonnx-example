@@ -253,8 +253,7 @@ class GestureRecognition(CombineBase):
         # 调整速率
         rate = 50
         # 跟踪移动量（队列）
-        txs = []
-        tys = []
+        tbboxes = []
         t_len = 20  # 多少帧判断一次跟踪器跟丢了
         t_offset_thr = 30
         while True:
@@ -292,29 +291,30 @@ class GestureRecognition(CombineBase):
 
                     # 如何判断跟踪器跟不上了？
                     # 根据10帧内的x1 和 y1的变化情况
-                    if len(txs) == t_len:
+                    if len(tbboxes) == t_len:
                         # 每过t_len 帧进行一次判断, 看是否没跟上
-                        if ((sum(txs) / t_len)) - txs[0] < t_offset_thr and ((sum(tys) / t_len)) - tys[0] < t_offset_thr:
+                        xs, ys, ws, hs = zip(*tbboxes)
+                        x_mean = sum(xs) * 1.0 / t_len
+                        y_mean = sum(ys) * 1.0 / t_len
+                        if (x_mean - xs[0]) < t_offset_thr and (y_mean - ys[0]) < t_offset_thr:
                             # 可能存在两个选项
                             #   1. 跟踪器跟丢了
                             #   2. 暂停或者播放的操作
-                            # 来个判断是否是暂停或者播放的动作的函数
+                            # 需要来个判断是否是暂停或者播放的函数
+                            
                             tracker_state = False
-                            txs = []
-                            tys = []
+                            tbboxes = []
                             up_val = 0
                             real_cp = None
-                            # 不往下走了就
+                            start_type = None
+
                             continue
                         else:
                             # 弹出第一个并向后插入
-                            txs.pop(0)
-                            txs.append(x)
-                            tys.pop(0)
-                            tys.append(y)
+                            tbboxes.pop(0)
+                            tbboxes.append([x, y, w, h])
                     else:
-                        txs.append(x)
-                        tys.append(y)
+                        tbboxes.append([x, y, w, h])
                         
                     cx = x + w / 2
                     cy = y + h / 2

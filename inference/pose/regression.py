@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 import cv2
 import numpy as np
-from .keypoints import Keypoints
+from ..keypoints import Keypoints
 from tools.pose_transforms import xywh2cs
 
 

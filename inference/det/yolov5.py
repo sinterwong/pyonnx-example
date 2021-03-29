@@ -3,7 +3,7 @@ import os
 import cv2
 import numpy as np
 from numpy import random
-from .detector import Detector
+from ..detector import Detector
 
 
 class DetectorYolov5(Detector):
