@@ -230,8 +230,6 @@ class GestureRecognition(CombineBase):
 
         return action_type
 
-
-
     def action_demo(self, video_file, field_view, out_root=None, is_show=False):
         self.field_view = field_view
         if out_root and not os.path.exists(out_root):

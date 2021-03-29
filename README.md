@@ -18,12 +18,12 @@ The demo is named in the format main_xxx_.py, You can run the code with the foll
 
 ```
 python main_pose_.py --det_model_path weights/yolov5s.onnx \
-			         --pose_model_path data/det/zidane.jpg \
+			         --pose_model_path weights/hrnet_w32_dark_128x96_trim.onnx \
 			         --det_input_size 640 \
 			         --pose_input_size (128,96) \
 			         --type darkpose or baseline \
 			         --video_path data/video/demo.mp4 \
-				 --im_path data/det/zidane.jpg \
+				 	 --im_path data/det/zidane.jpg \
 			         --out_root data/main_result/pose
 ```
 
