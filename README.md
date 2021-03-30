@@ -29,7 +29,7 @@ python main_pose_.py --det_model_path weights/yolov5s.onnx \
 
 ## TODO
 - [x] Gesture recognition combination module added to KCF
-- [ ] Based on gesture recognition to achieve up/down page,play,exit four functions
+- [x] Based on gesture recognition to achieve up/down page,play,exit four functions
 - [ ] Realize action recognition based on continuous frame
 
 ## Model zoo
