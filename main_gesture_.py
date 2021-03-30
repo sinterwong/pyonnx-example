@@ -38,7 +38,7 @@ def main():
 
     if opt.action_video_path:
         # 观测区域，启动动作只需要针对这块区域的手部就可以
-        field_view = [50, 300, 300, 620]  # x1, y1, x2, y2
+        field_view = [25, 400, 325, 700]  # x1, y1, x2, y2
         gesture.action_demo(opt.action_video_path, field_view=field_view, out_root=opt.out_root, is_show=False)
 
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     parser.add_argument("--im_path", type=str,
                         default="", help="single image path")
     parser.add_argument("--action_video_path", type=str,
-                        default="data/video/action/palm_move.mp4", help="single image path")
+                        default="data/video/action/combine.mp4", help="single image path")
     parser.add_argument("--out_root", type=str,
                         default="data/main_result/gesture", help="result output folder")
     main()

@@ -226,7 +226,7 @@ class GestureRecognition(CombineBase):
             num_max = num_cs[idx]
             other = sum(num_cs) - num_max
             if (num_max * 1.0 / other) > r:
-                 action_type = (cs, objs[-1])
+                 action_type = (cs[idx], objs[-1])
 
         return action_type
 
@@ -248,12 +248,13 @@ class GestureRecognition(CombineBase):
         real_cp = None
         # 调整量
         up_val = 0
+        R_open = True
         # 调整速率
         rate = 50
         # 跟踪移动量（队列）
         tbboxes = []
-        t_len = 20  # 多少帧判断一次跟踪器跟丢了
-        t_offset_thr = 30
+        t_len = 30  # 多少帧判断一次跟踪器跟丢了
+        t_offset_thr = 30  # 不动阈值
         while True:
             try:
                 frame = next(frame_iter)
@@ -283,30 +284,68 @@ class GestureRecognition(CombineBase):
                         # 可视化结果
                         frame = self._visual(frame, objs=objs, categorys=categorys)
                 else:
-
                     # 计算和上一帧 real_cp 的移动量并更新real_cp
                     x, y, w, h = self.tracker.update(frame)
-
+                    action_type = None
                     # 如何判断跟踪器跟不上了？
                     # 根据10帧内的x1 和 y1的变化情况
                     if len(tbboxes) == t_len:
+                        """
+                        可能存在两个选项
+                        1. 跟踪器跟丢了
+                        2. 暂停或者播放的操作
+                        需要来个判断是否是暂停或者播放的函数
+                        如果跟丢的区域在观测区域，启动手势识别判断
+                            a. 计算出均值区域
+                            b. 判断均值区域是否在观测区域内
+                            c. 若不在观测区域则进入初始化分支结束，若在则继续向下
+                            d. 若在观测区域 crop tbboxes中的所有手部区域图进行识别
+                            e. 通过 self._start_func 函数判断是否达到启动条件以及获取类型
+                        """
                         # 每过t_len 帧进行一次判断, 看是否没跟上
                         xs, ys, ws, hs = zip(*tbboxes)
-                        x_mean = sum(xs) * 1.0 / t_len
-                        y_mean = sum(ys) * 1.0 / t_len
-                        if (x_mean - xs[0]) < t_offset_thr and (y_mean - ys[0]) < t_offset_thr:
-                            # 可能存在两个选项
-                            #   1. 跟踪器跟丢了
-                            #   2. 暂停或者播放的操作
-                            # 需要来个判断是否是暂停或者播放的函数
-                            
-                            tracker_state = False
-                            tbboxes = []
-                            up_val = 0
-                            real_cp = None
-                            start_type = None
 
-                            continue
+                        # 计算出均值区域[x, y, w, h]
+                        box_mean = [int(sum(i) * 1.0 / t_len) for i in zip(*tbboxes)]
+                        box_mean = [box_mean[0], box_mean[1], box_mean[0] + box_mean[2], box_mean[1] + box_mean[3]]
+
+                        # 均值区域是否在观测区域内
+                        in_field = self._iof(self.field_view, box_mean) > 0.7
+
+                        # 跟踪器是否已经趋近停止
+                        tracker_stop = (box_mean[0] - xs[0]) < t_offset_thr and (box_mean[1] - ys[0]) < t_offset_thr
+
+                        if tracker_stop:
+                            # 跟踪器停止后
+                            if in_field:
+                                # 在观测区域, crop tbboxes中的所有手部区域图进行识别
+                                hand_imgs = [frame[b[1]: b[1] + b[3], b[0]: b[0] + b[2], :] for b in tbboxes]
+                                hand_imgs = [i for i in hand_imgs if 0 not in i.shape]
+                                # 获取识别结果
+                                categorys = [self._classifier.forward(im[:, :, ::-1]) for im in hand_imgs]
+                                num_type = Counter(categorys)
+                                cs, num_cs = zip(*num_type.items())
+                                idx = np.argmax(num_cs)
+                                num_max = num_cs[idx]
+                                other = sum(num_cs) - num_max
+                                if (num_max * 1.0 / (other + 1e-7)) > 0.7 and cs[idx] != 0:
+                                    action_type = cs[idx]
+                                else:
+                                    # 行为多变, 回归初始化 
+                                    tracker_state = False
+                                    tbboxes = []
+                                    up_val = 0
+                                    real_cp = None
+                                    start_type = None
+                                    continue
+                            else:
+                                # 不在观测区域, 回归初始化 
+                                tracker_state = False
+                                tbboxes = []
+                                up_val = 0
+                                real_cp = None
+                                start_type = None
+                                continue
                         else:
                             # 弹出第一个并向后插入
                             tbboxes.pop(0)
@@ -330,17 +369,23 @@ class GestureRecognition(CombineBase):
                     # 跟踪已经启动, 直到视频结束
                     if start_type == 1:
                         # 拳启动可能存在两个任务：
-                        #   1. 调整 R 通道 
+                        #   1. 调整 R open 
                         #   2. 播放
-                        frame[:, :, 2] += up_val
+                        if action_type and action_type !=0 and start_type != action_type:
+                            R_open = True
+                        else:
+                            frame[:, :, 2] += up_val
                     else:
                         # 掌启动可能存在两个任务：
-                        #   1. 调整 B 通道 
+                        #   1. 调整 R close 
                         #   2. 播放
-                        
-                        frame[:, :, 0] += up_val
-
+                        if action_type and action_type !=0 and start_type != action_type:
+                            R_open = False
+                        else:
+                            frame[:, :, 0] += up_val
                 frame = np.clip(frame, 0, 255).astype(np.uint8)
+                if not R_open:
+                    frame[:, :, 2] = 0
                 # cv2.imwrite("out.jpg", frame)
                 # exit()
                 video_writer.write(frame)
