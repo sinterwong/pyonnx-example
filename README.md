@@ -49,9 +49,6 @@ python main_pose_.py --det_model_path weights/yolov5s.onnx \
 ### coco 17 keypoints(yolov5s + lpn_50_256x192)
 ![17pose_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/pose2/17demo.gif?raw=true)
 
-### hand sliding motion(yolov5s + resnet18 + kcf)
-![slide_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/gesture/fist_move.gif?raw=true)
-
 ### hand gestures(yolov5s + res50_hand_pose)
 ![gesture_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/gesture2/gesture.gif?raw=true)
 
