@@ -52,6 +52,9 @@ python main_pose_.py --det_model_path weights/yolov5s.onnx \
 ### hand gestures(yolov5s + res50_hand_pose)
 ![gesture_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/gesture2/gesture.gif?raw=true)
 
+### hand gestures(yolov5s + resnet10-64x64-acc88-14c)
+![gesture_demo2](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/gesture/gesture_crop.gif?raw=true)
+
 ## Reference
 <https://github.com/ultralytics/yolov5>
 
