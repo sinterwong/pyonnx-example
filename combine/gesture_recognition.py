@@ -41,7 +41,7 @@ class GestureRecognition(CombineBase):
             objs.append(dr)
         return objs, categorys
 
-    def _visual(self, frame, objs, categorys):
+    def _visual(self, frame, objs, categorys, thickness=1):
         if objs:
             for i, dr in enumerate(objs):
                 if self.idx2classes[categorys[i]] == "0":
@@ -49,7 +49,7 @@ class GestureRecognition(CombineBase):
                 cv2.rectangle(frame, (dr[0], dr[1]),
                               (dr[2], dr[3]), (0, 0, 255), 3, 1)
                 cv2.putText(frame, self.idx2classes[categorys[i]], (
-                    dr[0], dr[1] + dr[3] // 2), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 255), 1)
+                    dr[0], dr[1] + (dr[3] - dr[1]) // 2), cv2.FONT_HERSHEY_COMPLEX, thickness, (0, 0, 255), 1)
                 # if categorys[i] == 0:
                 #     continue
                 # elif categorys[i] == 1:

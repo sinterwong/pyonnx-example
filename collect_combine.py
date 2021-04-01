@@ -6,6 +6,7 @@ from tqdm import tqdm
 from imutils import paths
 import numpy as np
 import os
+import random
 
 
 class HandDetectionInference(object):
@@ -22,13 +23,27 @@ class HandDetectionInference(object):
             cv2.rectangle(result, (dr[0], dr[1]), (dr[2], dr[3]), 255, 2, 1)
         return result
 
-    def crop(self, out, frame):
+    def crop(self, out, frame, zoom_ration=None):
         image = frame.copy()
+        h, w, _ = image.shape
         result = []
         for _, dr in enumerate(out):
-            result.append(image[dr[1]: dr[3], dr[0]: dr[2], :])
+            if zoom_ration:
+                r = random.random() * zoom_ration
+                offw = (dr[2] - dr[0]) * r
+                offh = (dr[3] - dr[1]) * r
+                x1 = int(max(dr[0] - offw, 0))
+                x2 = int(min(dr[2] + offw, w))
+                y1 = int(max(dr[1] - offh, 0))
+                y2 = int(min(dr[3] + offh, h))
+            else:
+                x1, y1, x2, y2 = dr[:4]
+            # print(dr)
+            # print([x1, y1, x2, y2])
+            # exit()
+            result.append(image[y1: y2, x1: x2, :])
         return result
-
+    
     def video(self, video_file, save_folder="output", save_result=None, visual_file="out.avi"):
         if save_folder and not os.path.exists(save_folder):
             os.makedirs(save_folder)

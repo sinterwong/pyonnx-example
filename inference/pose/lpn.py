@@ -27,12 +27,12 @@ class KeypointsLPN(Keypoints):
 
         data = self.preprocessing(image, c, s, sub_mean=[0.485, 0.456, 0.406], div_std=[0.229, 0.224, 0.225])
 
-        # forward_start = cv2.getTickCount()
+        forward_start = cv2.getTickCount()
         input_feed = self._get_input_feed(self.input_name, data)
         outputs = self.session.run(self.output_name, input_feed=input_feed)[0]
-        # forward_end = cv2.getTickCount()
-        # print("推理耗时：{}s".format(
-        #     (forward_end - forward_start) / cv2.getTickFrequency()))
+        forward_end = cv2.getTickCount()
+        print("推理耗时：{}s".format(
+            (forward_end - forward_start) / cv2.getTickFrequency()))
 
         # post_start = cv2.getTickCount()
         preds, maxvals = self._get_final_preds(outputs, [c], [s])
