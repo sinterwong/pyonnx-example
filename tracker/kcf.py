@@ -80,7 +80,7 @@ class KCFtracker(object):
             feature = self.hog.get_feature(resized_image)
             if self.debug:
                 self.hog.show_hog(feature)
- 
+
         fc, fh, fw = feature.shape
         self.scale_h = float(fh) / h
         self.scale_w = float(fw) / w
@@ -168,3 +168,33 @@ class KCFtracker(object):
 
         cx, cy, w, h = self.roi
         return (cx - w // 2, cy - h // 2, w, h)
+
+
+if __name__ == "__main__":
+    video_file = "fist_move.mp4_20210406_170054.mp4"
+    out_file = "fist_move.mp4_20210406_170054_out.mp4"
+    cap = cv2.VideoCapture(video_file)
+
+    fps = cap.get(cv2.CAP_PROP_FPS)  # 获取fps
+    rval, frame = cap.read()
+    h, w, _ = frame.shape
+    video_writer = cv2.VideoWriter(out_file, cv2.VideoWriter_fourcc(*'XVID'), fps, (w, h))
+
+    tracker = KCFtracker()
+    tracker_state = False
+    bbox = [200, 400, 310, 520]  # x1, y1, x2, y2
+    while rval:
+        rval, frame = cap.read()
+        if frame is None:
+            break
+        if not tracker_state:
+            tracker.init(frame, bbox)
+            tracker_state = True
+            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (100, 0, 100), 2, 1)
+        else:
+            x, y, w, h = tracker.update(frame)
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2, 1)
+        # cv2.imwrite('out.jpg', frame)
+        video_writer.write(frame)
+
+    video_writer.release()

@@ -24,7 +24,7 @@ def main():
         os.makedirs(out_root)
 
     idx2classes = dict(enumerate(['one', 'five', 'fist', 'ok', 'heartSingle',
-                                  'yearh', 'three', 'four', 'six', 'Iloveyou', 'gun', '-thumbUp', 'nine', 'pink']))
+                                  'yearh', 'three', 'four', 'six', 'Iloveyou', 'gun', 'thumbUp', 'nine', 'pink']))
     # idx2classes = dict(enumerate(['0', 'close', 'open']))
     # init model
     gesture = GestureRecognition(opt.det_model_path, opt.cls_model_path, det_input_size=opt.det_input_size, cls_input_size=opt.cls_input_size,

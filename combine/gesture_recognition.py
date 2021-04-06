@@ -242,19 +242,24 @@ class GestureRecognition(CombineBase):
 
         # 启动序列, 大于多少时启动判罚
         is_start, sn = [], 20
+        # 跟踪器当前状态
         tracker_state = False
+        # 启动方式（当前仅支持拳启动或掌启动）
         start_type = None
         # 手部移动的中心点
         real_cp = None
-        # 调整量
+        # 全局调整量
         up_val = 0
+        # R 通道全局状态（模拟播放暂停）
         R_open = True
-        # 调整速率
+        # 调整速率, 此处为每次 50px * 移动量
         rate = 50
-        # 跟踪移动量（队列）
+        # 跟踪队列
         tbboxes = []
-        t_len = 30  # 多少帧判断一次跟踪器跟丢了
-        t_offset_thr = 30  # 不动阈值
+        # 多少帧判断一次跟踪器跟丢了
+        t_len = 30  
+        # 用于判断跟踪队列中第一帧结果和跟踪队列中所有帧结果均值的差值是否大于以下超参数, 若大于证明还没有跟丢
+        t_offset_thr = 30  
         while True:
             try:
                 frame = next(frame_iter)
@@ -331,7 +336,7 @@ class GestureRecognition(CombineBase):
                                 if (num_max * 1.0 / (other + 1e-7)) > 0.7 and cs[idx] != 0:
                                     action_type = cs[idx]
                                 else:
-                                    # 行为多变, 回归初始化 
+                                    # 行为多变, 可能由误报导致, 也可能是时间没有对准, 回归初始化 
                                     tracker_state = False
                                     tbboxes = []
                                     up_val = 0
