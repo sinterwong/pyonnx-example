@@ -9,7 +9,8 @@
 ## requirements 
 
 - onnx == 1.8.1
-- onnxruntime == 1.7.0 or onnxruntime-gpu == 1.3.0
+- onnxruntime == 1.7.0
+- onnxruntime-gpu == 1.3.0
 - opencv-python == 4.2.0.32
 
 ## Run demo

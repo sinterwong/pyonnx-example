@@ -68,6 +68,8 @@ class GestureRecognition(CombineBase):
     def video_demo(self, video_file, out_root=None, is_show=False):
         if out_root and not os.path.exists(out_root):
             os.makedirs(out_root)
+        if video_file == "0":
+            video_file = 0
         frame_iter = self._video(video_file)
         fps, h, w = next(frame_iter)
         # self._video 之后生成 self.ofps, self.ow, self.oh
@@ -87,7 +89,9 @@ class GestureRecognition(CombineBase):
                 video_writer.write(frame)
                 if is_show:
                     cv2.imshow("demo", frame)
-                    cv2.waitkey(5)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        print("I'm done!")
+                        break
             except StopIteration as e:
                 print('Done!')
                 break
@@ -234,6 +238,8 @@ class GestureRecognition(CombineBase):
         self.field_view = field_view
         if out_root and not os.path.exists(out_root):
             os.makedirs(out_root)
+        if video_file == "0":
+            video_file = 0
         frame_iter = self._video(video_file)
         fps, h, w = next(frame_iter)
         # self._video 之后生成 self.ofps, self.ow, self.oh
@@ -396,7 +402,9 @@ class GestureRecognition(CombineBase):
                 video_writer.write(frame)
                 if is_show:
                     cv2.imshow("demo", frame)
-                    cv2.waitkey(5)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        print("I'm done!")
+                        break
             except StopIteration as e:
                 print('Done!')
                 break

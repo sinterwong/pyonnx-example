@@ -46,7 +46,7 @@ def main():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--det_model_path", type=str,
-                        default="weights/handv2-yolov5-320.onnx", help="det onnx model path")
+                        default="weights/handv3-yolov5-320.onnx", help="det onnx model path")
     parser.add_argument("--cls_model_path", type=str, default="weights/hand-recognition-resnet10-88-14c.onnx", help="cls onnx model path")
     # parser.add_argument("--cls_model_path", type=str, default="weights/hand-recognition_resnet10_85.714.onnx", help="cls onnx model path")
     parser.add_argument("--det_input_size", type=tuple,
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     parser.add_argument("--det_iou_thr", type=float,
                         default=0.25, help="Det threshold that iou")
     parser.add_argument("--video_path", type=str,
-                        default="data/video/gesture/gesture.mp4", help="video path")
+                        default="", help="video path")
     parser.add_argument("--im_path", type=str,
                         default="data/person/007.jpg", help="single image path")
     parser.add_argument("--action_video_path", type=str,
