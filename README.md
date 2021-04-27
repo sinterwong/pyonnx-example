@@ -43,19 +43,6 @@ python main_pose_.py --det_model_path weights/yolov5s.onnx \
 | hand-pose | [提取码:x9ar](https://pan.baidu.com/s/1wl6B6SI6_kisDyO2THa9Mg) |
 | hand-recognition | [提取码:h898](https://pan.baidu.com/s/1wuXDQKKAJK28-PcKF-vJsw) |
 
-## Visualization
-### coco-wholebody 133 keypoints(yolov5s + hrnet_w32_dark_128x96)
-![133pose_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/pose/133demo.gif?raw=true)
-
-### coco 17 keypoints(yolov5s + lpn_50_256x192)
-![17pose_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/pose2/17demo.gif?raw=true)
-
-### hand gestures(yolov5s + res50_hand_pose)
-![gesture_demo](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/gesture2/gesture.gif?raw=true)
-
-### hand gestures(yolov5s + resnet10-64x64-acc88-14c)
-![gesture_demo2](https://github.com/SinterCVer/pyonnx-example/blob/master/data/main_result/gesture/gesture_crop.gif?raw=true)
-
 ## Reference
 <https://github.com/ultralytics/yolov5>
 
