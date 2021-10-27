@@ -2,9 +2,9 @@
 
 ## introduce
 
-​	Use python to realize the inference function of the deep learning model based on the onnxruntime reasoning framework. The onnx model can be converted into most mainstream deep learning inference framework models, so you can test whether the onnx model is correct before deploying the model.
+Use python to realize the inference function of the DL model based on the onnxruntime framework. 
 
- Note: The model here is trained by pytorch 1.6 and converted  by onnx 1.8.1
+Note: Here the models is trained by pytorch v1.6
 
 ## requirements 
 
@@ -15,7 +15,7 @@
 
 ## Run demo
 
-The demo is named in the format main_xxx_.py, You can run the code with the following example.
+All demos is named in the format main_xxx_.py, You can run demo in the following ways.
 
 ```
 python main_pose_.py --det_model_path weights/yolov5s.onnx \
@@ -28,9 +28,6 @@ python main_pose_.py --det_model_path weights/yolov5s.onnx \
 			         --out_root data/main_result/pose
 ```
 
-## TODO
-- [x] Gesture recognition combination module added to KCF
-- [x] Based on gesture recognition to achieve up/down page,play,exit four functions
 
 ## Model zoo
 
